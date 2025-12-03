@@ -1,0 +1,9 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+torch>=2.0.0
+numpy>=1.24.0
+gtts>=2.5.0
+python-multipart>=0.0.9
+# Note: MediaPipe not needed for backend (only for data collection)
+# opencv-python not needed for backend (only for data collection)
+

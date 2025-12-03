@@ -94,3 +94,4 @@ const Webcam = ({ onPrediction }) => {
 export default Webcam;
 
 
+

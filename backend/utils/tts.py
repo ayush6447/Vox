@@ -30,3 +30,4 @@ def synthesize_speech(text: str, lang: str = "en") -> Tuple[Path, str]:
     return tmp_path, "audio/mpeg"
 
 
+
