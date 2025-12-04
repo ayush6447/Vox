@@ -54,3 +54,4 @@ py -3.11 train_model.py --data_dir data --output_model ../backend/model/sign_mod
 | **Training (TensorFlow)** | 3.8-3.11 | tensorflow, numpy |
 
 
+
