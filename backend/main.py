@@ -104,7 +104,12 @@ def startup_event():
     """Lazy-load model on startup so first request is fast for the client."""
     try:
       init_model()
-      print(f"✅ Model loaded successfully. Classes: {class_names}")
+      import os
+      import datetime
+      mod_time = datetime.datetime.fromtimestamp(MODEL_PATH.stat().st_mtime)
+      print(f"✅ Model loaded successfully from: {MODEL_PATH.resolve()}")
+      print(f"✅ Model timestamp: {mod_time}")
+      print(f"✅ Classes: {class_names}")
     except Exception as e:
       # Log error but don't fail - /predict will surface a clear error.
       print(f"⚠️  Model not loaded on startup: {e}")
