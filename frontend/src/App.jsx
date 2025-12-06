@@ -34,7 +34,7 @@ const App = () => {
   return (
     <div className="app-root">
       <header className="app-header">
-        <h1>SignSpeak</h1>
+        <h1>Vox</h1>
         <p>Real-time Sign Language to Text &amp; Speech</p>
       </header>
       <main className="app-main">
@@ -62,7 +62,7 @@ const App = () => {
         </section>
       </main>
       <footer className="app-footer">
-        <span>SignSpeak &copy; {new Date().getFullYear()}</span>
+        <span>Vox &copy; {new Date().getFullYear()}</span>
       </footer>
     </div>
   );

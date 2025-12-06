@@ -1,6 +1,0 @@
-torch>=2.0.0
-numpy>=1.24.0
-# Note: opencv-python and mediapipe are only needed for data collection
-# Data collection requires Python 3.11 (MediaPipe doesn't support Python 3.14 yet)
-# For training with Python 3.14, you only need torch and numpy
-

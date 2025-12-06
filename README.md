@@ -1,6 +1,6 @@
-# 🎯 SignSpeak — Real-time Sign Language to Text/Speech
+# 🎯 Vox — Real-time Sign Language to Text/Speech
 
-SignSpeak is an end-to-end system that translates sign language gestures into text and speech in real-time.
+Vox is an end-to-end system that translates sign language gestures into text and speech in real-time.
 
 ## ✨ Features
 
@@ -10,61 +10,89 @@ SignSpeak is an end-to-end system that translates sign language gestures into te
 - 🔊 **Text-to-speech** conversion with gTTS
 - ⚡ **Low latency** predictions (~200ms updates)
 
-## 📂 Project Structure
+## 🏗️ Project Structure
 
 ```
-SignSpeak/
+Vox/
 ├── frontend/          # React + Vite web app
-│   ├── src/
-│   │   ├── components/Webcam.jsx
-│   │   ├── mediapipe/handTracker.js
-│   │   └── api/api.js
-├── backend/           # FastAPI server
+├── backend/           # FastAPI server (Python 3.11)
 │   ├── main.py
-│   ├── model/sign_model.h5
+│   ├── model/         # Trained model + class names JSON
 │   └── utils/
 ├── ml_training/       # Data collection & training
 │   ├── collect_data.py
-│   └── train_model.py
+│   ├── train_model.py
+│   ├── augment_data.py # Data augmentation script
+│   └── data/          # Training samples
 ```
 
 ## 🚀 Quick Start
 
-**See [QUICK_START.md](./QUICK_START.md) for a 5-minute setup guide.**
+### 1. Prerequisites
+- **Python 3.11** (Required)
+- **Node.js 18+**
 
-**See [SETUP_GUIDE.md](./SETUP_GUIDE.md) for detailed instructions.**
+### 2. Install Dependencies
 
-### Basic Workflow
+**Backend:**
+```bash
+cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+pip install -r requirements.txt
+```
 
-1. **Install dependencies** (backend + frontend)
-2. **Collect training data** for your signs
-3. **Train the model**
-4. **Start backend server** (port 8000)
-5. **Start frontend dev server** (port 5173)
-6. **Open browser** and start signing!
+**Frontend:**
+```bash
+cd frontend
+npm install
+```
 
-## 📖 Documentation
+### 3. Collect & Train Data
 
-- **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Complete step-by-step guide
-- **[QUICK_START.md](./QUICK_START.md)** - Fast setup instructions
-- **[PYTHON_314_GUIDE.md](./PYTHON_314_GUIDE.md)** - Using Python 3.14 with PyTorch
+1.  **Collect Data**: (Run for each sign, e.g., 'hello', 'bye')
+    ```bash
+    cd ml_training
+    python collect_data.py --output_dir data --label hello --num_sequences 20
+    python collect_data.py --output_dir data --label bye --num_sequences 20
+    ```
 
-## 🛠️ Tech Stack
+2.  **Augment Data** (Optional but recommended):
+    ```bash
+    # Generates synthetic variations (noise, scale, shift) to improve accuracy
+    python augment_data.py
+    ```
 
-- **Frontend:** React, Vite, MediaPipe Hands (JS)
-- **Backend:** FastAPI, PyTorch/TensorFlow, gTTS
-- **ML:** LSTM neural network for sequence classification
-- **Data:** MediaPipe hand landmarks (21 points × 3D = 63 features)
+3.  **Train Model**:
+    ```bash
+    python train_model.py --data_dir data --output_model backend/model/sign_model.h5
+    ```
 
-## 🐍 Python Version Support
+   *Note: This saves both `sign_model.h5` and `sign_model.json` (class names).*
 
-- **PyTorch version:** Works with Python 3.8-3.14+ ✅ (Recommended for Python 3.14)
-- **TensorFlow version:** Works with Python 3.8-3.11 only
-- See [PYTHON_314_GUIDE.md](./PYTHON_314_GUIDE.md) for Python 3.14 setup
+### 4. Run the Application
 
-## 📝 License
+**Step 1: Start Backend**
+```bash
+cd backend
+uvicorn main:app --reload --port 8000
+```
 
-MIT License - feel free to use and modify!
+**Step 2: Start Frontend**
+```bash
+cd frontend
+npm run dev
+```
 
+**Step 3: Open Browser**
+Go to [http://localhost:5173](http://localhost:5173) (or port 5174 if 5173 is busy).
 
+## 🛠️ Troubleshooting
 
+- **Model Loading Error?** Ensure you trained the model *after* collecting data. The backend needs `backend/model/sign_model.h5`.
+- **Wrong Predictions?** Try augmenting your data (`augment_data.py`) and retraining.
+- **Frontend Port?** If 5173 is taken, Vite uses the next available port (check terminal).
+
+## 📜 License
+MIT License

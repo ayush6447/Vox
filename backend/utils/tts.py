@@ -1,5 +1,5 @@
 """
-Text-to-Speech utility for SignSpeak.
+Text-to-Speech utility for Vox.
 
 Uses gTTS to synthesize speech from text and returns a temporary
 audio file path that the FastAPI endpoint can stream.

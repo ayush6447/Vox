@@ -1,5 +1,5 @@
 // MediaPipe Hands wrapper for tracking hand landmarks in the browser.
-// Exposes a simple function to start tracking on a video element.
+// Exposes a simple function to start tracking on a video element for Vox.
 
 import { Hands } from '@mediapipe/hands';
 import { Camera } from '@mediapipe/camera_utils';

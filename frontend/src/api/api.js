@@ -1,4 +1,4 @@
-// Centralized API client for SignSpeak frontend
+// Centralized API client for Vox frontend
 // All endpoints are relative to the backend FastAPI server.
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';

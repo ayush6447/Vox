@@ -1,5 +1,5 @@
 """
-Training script for SignSpeak sign recognition model.
+Training script for Vox sign recognition model.
 
 Loads landmark sequences captured by collect_data.py, trains an LSTM-based
 classifier, and saves the model as backend/model/sign_model.h5.
@@ -61,8 +61,9 @@ def load_sequences(data_dir: Path) -> Tuple[np.ndarray, np.ndarray, List[str]]:
 def build_lstm_model(sequence_length: int, feature_dim: int, num_classes: int) -> tf.keras.Model:
     """Create a simple LSTM-based classifier."""
     inputs = layers.Input(shape=(sequence_length, feature_dim))
-    x = layers.Masking(mask_value=0.0)(inputs)
-    x = layers.LSTM(128, return_sequences=False)(x)
+    # Masking layer removed to avoid 'Unknown layer: NotEqual' serialization error
+    # x = layers.Masking(mask_value=0.0)(inputs)
+    x = layers.LSTM(128, return_sequences=False)(inputs)
     x = layers.Dense(64, activation="relu")(x)
     x = layers.Dropout(0.3)(x)
     outputs = layers.Dense(num_classes, activation="softmax")(x)
@@ -104,6 +105,11 @@ def main():
     num_samples = X.shape[0]
     val_size = max(1, int(0.2 * num_samples))
 
+    # Shuffle data before splitting
+    indices = np.random.permutation(num_samples)
+    X = X[indices]
+    y = y[indices]
+
     X_train, X_val = X[:-val_size], X[-val_size:]
     y_train, y_val = y[:-val_size], y[-val_size:]
 
@@ -132,6 +138,13 @@ def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     model.save(output_path)
     print(f"Saved trained model to {output_path}")
+
+    # Save class names to JSON for backend
+    import json
+    json_path = output_path.with_suffix(".json")
+    with open(json_path, "w") as f:
+        json.dump(class_names, f)
+    print(f"Saved class names to {json_path}")
 
 
 if __name__ == "__main__":

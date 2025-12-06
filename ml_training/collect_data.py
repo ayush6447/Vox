@@ -1,5 +1,5 @@
 """
-Data collection script for SignSpeak.
+Data collection script for Vox.
 
 Uses OpenCV + MediaPipe Hands to capture 30-frame sequences of
 21 hand landmarks (x, y, z) per frame, and saves them as NumPy arrays.
@@ -26,7 +26,9 @@ def collect_sequences(output_dir: Path, label: str, num_sequences: int, seq_len:
 
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
+        print("❌ ERROR: cv2.VideoCapture(0) returned False (cap not opened)")
         raise RuntimeError("Unable to access webcam")
+    print("✅ Webcam accessed successfully")
 
     with mp_hands.Hands(
         max_num_hands=1,
@@ -44,6 +46,7 @@ def collect_sequences(output_dir: Path, label: str, num_sequences: int, seq_len:
             while len(sequence) < seq_len:
                 ret, frame = cap.read()
                 if not ret:
+                    print("❌ ERROR: cap.read() returned False (failed to read frame)")
                     break
 
                 image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -74,7 +77,7 @@ def collect_sequences(output_dir: Path, label: str, num_sequences: int, seq_len:
                     (0, 255, 0),
                     2,
                 )
-                cv2.imshow("SignSpeak Data Collection", image)
+                cv2.imshow("Vox Data Collection", image)
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     cap.release()

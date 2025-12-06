@@ -3,17 +3,8 @@ uvicorn[standard]>=0.30.0
 numpy>=1.24.0
 gtts>=2.5.0
 python-multipart>=0.0.9
-mediapipe>=0.10.0
-opencv-python>=4.8.0
-
-# Choose ONE of the following ML frameworks:
-
-# Option 1: PyTorch (supports Python 3.8-3.14+) - RECOMMENDED for Python 3.14
-torch>=2.0.0
-
-# Option 2: TensorFlow (supports Python 3.8-3.11 only)
-# tensorflow-cpu>=2.13.0
-# Uncomment the line above and comment out torch if using Python 3.11 or earlier
+tensorflow>=2.13.0
+pydantic>=2.0.0
 
 
 

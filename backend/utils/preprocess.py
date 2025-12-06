@@ -1,5 +1,5 @@
 """
-Preprocessing utilities for SignSpeak.
+Preprocessing utilities for Vox.
 
 Converts raw 63-length landmark vectors from the frontend into
 model-ready sequences of shape (1, sequence_length, 63).

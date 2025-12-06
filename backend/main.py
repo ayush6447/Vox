@@ -1,5 +1,5 @@
 """
-FastAPI backend for SignSpeak.
+FastAPI backend for Vox - Real-time Sign Language to Text/Speech translation.
 
 Exposes:
 - POST /predict  → sign language recognition from hand landmarks
@@ -11,9 +11,9 @@ from typing import List
 
 import numpy as np
 import tensorflow as tf
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 
 from utils.preprocess import LandmarkSequenceBuffer
@@ -22,7 +22,7 @@ from utils.tts import synthesize_speech
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "model" / "sign_model.h5"
 
-app = FastAPI(title="SignSpeak Backend", version="1.0.0")
+app = FastAPI(title="Vox Backend", version="1.0.0")
 
 # Allow local dev origins; adjust as needed for production.
 origins = [
@@ -38,6 +38,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Ensure CORS headers are always sent, even on errors."""
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {str(exc)}"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 
 class PredictRequest(BaseModel):
@@ -71,9 +85,14 @@ def init_model():
     global model, class_names
     if model is None:
         model = load_model()
-        # Try to infer class names from model metadata, if set during training.
-        # Otherwise, default to generic labels.
-        if hasattr(model, "class_names"):
+        
+        # Try to load class names from JSON
+        import json
+        json_path = MODEL_PATH.with_suffix(".json")
+        if json_path.exists():
+            with open(json_path, "r") as f:
+                class_names = json.load(f)
+        elif hasattr(model, "class_names"):
             class_names = list(model.class_names)
         else:
             num_classes = model.output_shape[-1]
@@ -85,9 +104,11 @@ def startup_event():
     """Lazy-load model on startup so first request is fast for the client."""
     try:
       init_model()
-    except Exception:
-      # Fail silently here; /predict will surface a clear error.
-      pass
+      print(f"✅ Model loaded successfully. Classes: {class_names}")
+    except Exception as e:
+      # Log error but don't fail - /predict will surface a clear error.
+      print(f"⚠️  Model not loaded on startup: {e}")
+      print("   Will attempt to load on first /predict request.")
 
 
 @app.post("/predict", response_model=PredictResponse)
@@ -106,18 +127,22 @@ async def predict(req: PredictRequest):
         init_model()
     except FileNotFoundError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Model initialization failed: {str(e)}")
 
-    sequence_buffer.add_frame(req.landmarks)
-    seq_batch = sequence_buffer.to_batch()  # (1, seq_len, 63)
+    try:
+        sequence_buffer.add_frame(req.landmarks)
+        seq_batch = sequence_buffer.to_batch()  # (1, seq_len, 63)
 
-    # Model outputs logits / probabilities over classes
-    logits = model.predict(seq_batch, verbose=0)
-    probs = tf.nn.softmax(logits, axis=-1).numpy()[0]
-    class_idx = int(np.argmax(probs))
-    confidence = float(probs[class_idx])
-    prediction = class_names[class_idx]
+        # Model outputs probabilities (since last layer is softmax)
+        probs = model.predict(seq_batch, verbose=0)[0]
+        class_idx = int(np.argmax(probs))
+        confidence = float(probs[class_idx])
+        prediction = class_names[class_idx] if class_names else f"Sign {class_idx}"
 
-    return PredictResponse(prediction=prediction, confidence=confidence)
+        return PredictResponse(prediction=prediction, confidence=confidence)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
 @app.post("/speak")
@@ -146,7 +171,7 @@ async def speak(req: SpeakRequest):
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "SignSpeak backend is running"}
+    return {"status": "ok", "message": "Vox backend is running"}
 
 
 if __name__ == "__main__":
